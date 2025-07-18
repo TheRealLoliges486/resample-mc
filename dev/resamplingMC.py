@@ -74,6 +74,7 @@ chunk_size = 10000
 
 # Split into chunks
 num_rows = len(replica_df)
+num_chunks = len(range(0, num_rows, chunk_size))
 for chunk_idx in range(0, num_rows, chunk_size):
     chunk_df = replica_df.iloc[chunk_idx : chunk_idx + chunk_size]
 
@@ -89,7 +90,7 @@ for chunk_idx in range(0, num_rows, chunk_size):
     new_meta[b"sum_weight_central"] = str(sum_weight_central).encode()
     
     # IMPORTANT: Keep all chunks. Otherwise the sum_genw_presel will not be correct
-    new_meta[b"sum_genw_presel"] = str(sum_genw_beforesel / num_rows).encode()
+    new_meta[b"sum_genw_presel"] = str(sum_genw_beforesel / num_chunks).encode()
 
     # Write with updated schema
     table = table.replace_schema_metadata(new_meta)
