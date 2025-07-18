@@ -4,5 +4,6 @@ dev/slurm_output/*
 *.err
 *.out
 
-
+# Source files
+src_files/*
 
