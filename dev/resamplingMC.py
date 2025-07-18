@@ -50,6 +50,12 @@ parquet_files = glob.glob(os.path.join(parquet_dir, "*.parquet"))
 
 df = pd.concat((pd.read_parquet(f) for f in parquet_files), ignore_index=True)
 
+# Extract the sum_genw_presel from the metadata of the Parquet files
+# Inpossible to keep it after the "poissonian randomization"
+# TODO: Can we always use the same, since in the end we only care about the best fit value?
+sum_genw_beforesel = 0
+for f in parquet_files:
+    sum_genw_beforesel += float(pq.read_table(f).schema.metadata[b'sum_genw_presel'])
 
 ## Extract from a Poisson distribution the number of events for each replica
 exp_replica = poisson.rvs(mu=len(df), size=(1))
@@ -81,6 +87,9 @@ for chunk_idx in range(0, num_rows, chunk_size):
     existing_meta = table.schema.metadata or {}
     new_meta = dict(existing_meta)
     new_meta[b"sum_weight_central"] = str(sum_weight_central).encode()
+    
+    # IMPORTANT: Keep all chunks. Otherwise the sum_genw_presel will not be correct
+    new_meta[b"sum_genw_presel"] = str(sum_genw_beforesel / num_rows).encode()
 
     # Write with updated schema
     table = table.replace_schema_metadata(new_meta)
